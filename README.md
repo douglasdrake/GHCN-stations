@@ -18,8 +18,8 @@ Create a tool to search for stations based on location and types of measurements
 limits the measurements to the five primary results: Precipitation, Maximum Temperature, Minimum Temperature, Snowfall, and Snow Depth.
 
 # Methods
-1.  A Python Class `GHCN-Archive` was created to download and maintain a copy of the `GHCN-Archive`.
-2.  A SQLite database of the GHCN stations and GHCN inventory of measurements was created using SQLAlchemy.
+1.  A Python Class [`GHCN-Archive`](https://github.com/douglasdrake/GHCN-Archive) was created to download and maintain a copy of the `GHCN-Archive`.
+2.  A SQLite database of the GHCN stations and GHCN inventory of measurements was created using SQLAlchemy. 
 3.  A Flask Web App was written to render the search template and return search results.  SQLAlchemy is 
 used for querying the database.
 4.  Plot.ly was used to plot the coordinates of the returned stations.
