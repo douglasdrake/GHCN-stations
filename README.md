@@ -24,12 +24,12 @@ limits the measurements to the five primary results: Precipitation, Maximum Temp
 used for querying the database.
 4.  Plot.ly was used to plot the coordinates of the returned stations.
 5.  D3 was used to render an HTML table with the station information.
-6.  The App was deployed to Heroku.
+6.  The App was deployed to Heroku [ghcn-filter](https://ghcn-filter.herokuapp.com/)
 
 # Further Work
 1.  Form validation to insure the app is passed valid arguments.
 2.  Use Great Circle Distance to search for points within a given radius of the target coordinates.
-3.  Using geocoding, find the station(s) closest to the given coordinates.
+3.  Use geocoding to find the station(s) closest to a given city.
 
 ## Citation:
 Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012:  *An overview 
