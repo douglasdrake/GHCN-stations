@@ -11,8 +11,25 @@ others are less than an hour old.
 
 As of Version: 3.27-upd-2019081018, there are 113,933 stations in the archive.  
 We can search for stations by location and for the measurements that
-are available.  This search tool currently limits the measurements to the five primary results: Precipitation, Maximum Temperature, 
-Minimum Temperature, Snowfall, and Snow Depth.
+are available. 
+
+# Project
+Create a tool to search for stations based on location and types of measurements available. This search tool currently 
+limits the measurements to the five primary results: Precipitation, Maximum Temperature, Minimum Temperature, Snowfall, and Snow Depth.
+
+# Methods
+1.  A Python Class `GHCN-Archive` was created to download and maintain a copy of the `GHCN-Archive`.
+2.  A SQLite database of the GHCN stations and GHCN inventory of measurements was created using SQLAlchemy.
+3.  A Flask Web App was written to render the search template and return search results.  SQLAlchemy is 
+used for querying the database.
+4.  Plot.ly was used to plot the coordinates of the returned stations.
+5.  D3 was used to render an HTML table with the station information.
+6.  The App was deployed to Heroku.
+
+# Further Work
+1.  Form validation to insure the app is passed valid arguments.
+2.  Use Great Circle Distance to search for points within a given radius of the target coordinates.
+3.  Using geocoding, find the station(s) closest to the given coordinates.
 
 ## Citation:
 Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012:  *An overview 
@@ -22,3 +39,4 @@ and Oceanic Technology, 29, 897-910, doi:10.1175/JTECH-D-11-00103.1.
 Menne, M.J., I. Durre, B. Korzeniewski, S. McNeal, K. Thomas, X. Yin, S. Anthony, R. Ray, 
 R.S. Vose, B.E.Gleason, and T.G. Houston, 2012: *Global Historical Climatology Network - 
 Daily (GHCN-Daily)*, Version 3.27.
+

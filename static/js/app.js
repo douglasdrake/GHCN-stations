@@ -36,7 +36,17 @@ submit.on("click", function() {
     var fbody = d3.select("#filter-table");
 
     fbody.html("");
-  
+
+    console.log(filteredData);
+    console.log(typeof(filteredData));
+
+    if(filteredData.length === 0) {
+      console.log("No stations satisfy the search parameters.");
+      var row = fbody.append("tr");
+      var cell = row.append("td");
+      cell.text("No stations found");
+    }
+
     filteredData.forEach((datum) => {
       // console.log(datum);
       var row = fbody.append("tr");

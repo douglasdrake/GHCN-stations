@@ -33,10 +33,6 @@
                   are available.  This search tool currently limits the measurements to the five primary results: Precipitation, Maximum Temperature, 
                   Minimum Temperature, Snowfall, and Snow Depth.
                 </p>
-                <p><cite>Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012:  <i>An overview 
-                    of the Global Historical Climatology Network-Daily Database. </i> Journal of Atmospheric 
-                    and Oceanic Technology, 29, 897-910, doi:10.1175/JTECH-D-11-00103.1.</cite> </p>
-
                     <p>
                     <cite>
                     Menne, M.J., I. Durre, B. Korzeniewski, S. McNeal, K. Thomas, X. Yin, S. Anthony, R. Ray, 
@@ -44,6 +40,9 @@
                     Daily (GHCN-Daily), Version 3.27.</i></cite>
                   </p>
                   <hr>
+
+                  <p> </p>
+                    <h3>Use the menus below to filter on the GHCN stations.</h3>
           </div> <!-- End col-md-12 -->
         </div> <!-- End row -->
 
@@ -78,11 +77,11 @@
                         </li>
                         <li class="filter list-group-item">
                             <label for="latitude">Latitude</label>
-                            <input class="form-control" id="latitude" type="number" min=-180 max=180 value=44.9778>
+                            <input class="form-control" id="latitude" type="number" min=-90 max=90 value=44.9778>
                         </li>
                         <li class="filter list-group-item">
                           <label for="radius">Bounding Box Length in Degrees</label>
-                          <input class="form-control" id="radius" type="number" min=1 max = 5 value=3>
+                          <input class="form-control" id="radius" type="number" min=1 max = 10 value=3>
                       </li>
                       <li class="filter list-group-item">
                       <input id="filter-btn" class="btn btn-primary btn-lg" type="submit" value="Submit">
@@ -109,8 +108,8 @@
                         <tr>
                           <th class="table-head">Station</th>
                           
-                          <th class="table-head">Longitude</th>
                           <th class="table-head">Latitude</th>
+                          <th class="table-head">Longitude</th>
                           <th class="table-head">Elevation</th>
                           <th class="table-head">Country</th>
                           <th class="table-head">State</th>

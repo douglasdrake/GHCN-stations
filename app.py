@@ -121,7 +121,7 @@ def find_stations(search_args):
     last_year = int(search_args[2])
     longitude = float(search_args[3])
     latitude = float(search_args[4])
-    radius = float(search_args[5])
+    radius = float(search_args[5])/2.0
 
     lon_min = longitude - radius
     lon_max = longitude + radius
@@ -155,7 +155,7 @@ def find_stations(search_args):
 
     print(df.head())
     print(df.shape)
-    print(data[:5])
+    #print(data[:5])
     print("-"*50)
     return data
 
