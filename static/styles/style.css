@@ -1,0 +1,13 @@
+/*.table {
+    margin-left: 40px;
+}*/
+
+/* styles used in the station map */
+
+#stationmap { height: 600px; } 
+
+body,
+html {
+  height: 100%;
+}
+
