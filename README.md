@@ -22,14 +22,16 @@ limits the measurements to the five primary results: Precipitation, Maximum Temp
 2.  A SQLite database of the GHCN stations and GHCN inventory of measurements was created using SQLAlchemy. 
 3.  A Flask Web App was written to render the search template and return search results.  SQLAlchemy is 
 used for querying the database.
-4.  Plot.ly was used to plot the coordinates of the returned stations.
+    *  To query stations based on distance from a given coordinate, we first compute a bounding box using code given by:
+        [http://janmatuschek.de/LatitudeLongitudeBoundingCoordinates](http://janmatuschek.de/LatitudeLongitudeBoundingCoordinates).
+        This code finds a bounding box that contains all points within a great-circle distance radius of the target coordinate.
+        This limits the number of stations for which we need to compute the great-circle distance to the target.
+4.  Leaflet was used to plot the coordinates of the returned stations.
 5.  D3 was used to render an HTML table with the station information.
 6.  The App was deployed to Heroku [ghcn-filter](https://ghcn-filter.herokuapp.com/)
 
-# Further Work
-1.  Form validation to insure the app is passed valid arguments.
-2.  Use Great Circle Distance to search for points within a given radius of the target coordinates.
-3.  Use geocoding to find the station(s) closest to a given city.
+# Useful Extension (Further Work)
+1.  Use geocoding to find the station(s) closest to a given city.
 
 ## Citation:
 Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012:  *An overview 

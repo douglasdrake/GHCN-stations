@@ -1,5 +1,7 @@
 import os
 
+from math import radians, degrees, sin, cos, asin, acos, sqrt, pi
+
 import pandas as pd
 import numpy as np
 
@@ -10,7 +12,6 @@ from sqlalchemy import create_engine
 
 from flask import Flask, jsonify, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
-
 
 from werkzeug.routing import BaseConverter
 
@@ -103,6 +104,80 @@ def find_stations_with(session, element, lon_min, lon_max, lat_min, lat_max, fir
 
     return pd.read_sql(query.statement, session.bind)
 
+def find_stations_near(session, lon, lat, radius, element, miles=False, first_year=None, last_year=None):
+
+    def great_circle_distance(lon1, lat1, lon2, lat2, miles=False):
+        """
+        Compute the Great Circle Distance between two points given by longitude and latitude, in degrees,
+        on the surface of the Earth.   Code is modified from:  
+        https://medium.com/@petehouston/calculate-distance-of-two-locations-on-earth-using-python-1501b1944d97
+        """
+        # Radius of the Earth
+        if miles:
+            multiplier = 3958.756
+        else:
+            multiplier = 6378.137
+            
+        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+        
+        return multiplier * (
+            acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(lon1 - lon2))
+        )
+
+    def bounding_box(lon, lat, distance, miles=False):
+        """
+        Return bounding coordinates that includes all points within the given distance of the point given by lon, lat.
+        Based on the code given by Jan Philip Matuschek at:
+        http://janmatuschek.de/LatitudeLongitudeBoundingCoordinates
+        """     
+        # Radius of the Earth
+        if miles:
+            multiplier = 3958.756
+        else:
+            multiplier = 6378.137
+        
+        lon, lat = map(radians, [lon, lat])
+        
+        # angular distance in radians on a great circle
+        rad_dist = distance / multiplier
+
+        min_lat = lat - rad_dist
+        max_lat = lat + rad_dist
+        
+        if min_lat > radians(-90) and max_lat < radians(90):
+            delta_lon = asin(sin(rad_dist) / cos(lat))
+            
+            min_lon = lon - delta_lon
+            if min_lon < radians(-180):
+                min_lon += 2 * pi
+                
+            max_lon = lon + delta_lon
+            if max_lon > radians(180):
+                max_lon -= 2 * pi
+        
+        else:
+            # a pole is within the distance
+            min_lat = max(min_lat, radians(-90))
+            max_lat = min(max_lat, radians(90))
+            min_lon = radians(-180)
+            max_lon = radians(180)
+
+        return map(degrees, [min_lon, max_lon, min_lat, max_lat])
+
+    # First get the bounding box to limit the search:
+    lon_min, lon_max, lat_min, lat_max = bounding_box(lon, lat, radius, miles)
+    
+    # now query the database for all points within bounding box 
+    df = find_stations_with(session, element, lon_min, lon_max, lat_min, lat_max, first_year, last_year)
+    
+    distance = []
+    # now compute the great circle distance to each station
+    for row in df.itertuples():
+        distance.append(great_circle_distance(lon, lat, row.longitude, row.latitude, miles))
+
+    df['distance'] = distance
+    
+    return df[df.distance <= radius]
 
 """
 App routes 
@@ -121,14 +196,9 @@ def find_stations(search_args):
     last_year = int(search_args[2])
     longitude = float(search_args[3])
     latitude = float(search_args[4])
-    radius = float(search_args[5])/2.0
+    radius = float(search_args[5])
 
-    lon_min = longitude - radius
-    lon_max = longitude + radius
-    lat_min = latitude - radius
-    lat_max = latitude + radius
-
-    df = find_stations_with(db.session, element, lon_min, lon_max, lat_min, lat_max, first_year, last_year)
+    df = find_stations_near(db.session, longitude, latitude, radius, element, False, first_year, last_year)
     #if not df.empty:
     #    df.set_index('station_id', inplace=True)
     

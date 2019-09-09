@@ -5,7 +5,9 @@ var submit = d3.select("#filter-btn");
 
 console.log(submit);
 
-submit.on("click", function() {
+var stationsMap = null;
+
+submit.on("click", function () {
   d3.event.preventDefault();
 
   // Select the input element and get the raw HTML node
@@ -29,6 +31,12 @@ submit.on("click", function() {
 
   console.log(searchUrl);
 
+  if (stationsMap && stationsMap.remove) {
+    stationsMap.off();
+    stationsMap.remove();
+    // console.log("removed mySnowMap");
+  }
+
   d3.json(searchUrl).then((filteredData) => {
     console.log("Retrieved search results");
     // console.log(filteredData);
@@ -38,9 +46,9 @@ submit.on("click", function() {
     fbody.html("");
 
     console.log(filteredData);
-    console.log(typeof(filteredData));
+    console.log(typeof (filteredData));
 
-    if(filteredData.length === 0) {
+    if (filteredData.length === 0) {
       console.log("No stations satisfy the search parameters.");
       var row = fbody.append("tr");
       var cell = row.append("td");
@@ -55,57 +63,110 @@ submit.on("click", function() {
         cell.text(value);
       });
     });
-    
+
     function unpack(rows, key) {
-      return rows.map(function(row) { return row[key]; });
+      return rows.map(function (row) {
+        return row[key];
+      });
     }
 
     var longitudes = unpack(filteredData, 'longitude');
     var latitudes = unpack(filteredData, 'latitude');
     var ids = unpack(filteredData, 'station_id');
     var names = unpack(filteredData, 'name');
-    
-    var data = [{
-      type: 'scattermapbox',
-      mode: 'markers',
-      lon: longitudes,
-      lat: latitudes,
-      marker: {
-        color: "red",
-        opacity: 0.8,
-        size: 10,
-      },
-      text: ids,
-      name: 'GHCN Stations'
-    }];
 
-    var layout = {
-      dragmode: 'zoom',
-      mapbox: {
-        center: {
-          lat: inputLatitude,
-          lon: inputLongitude
-        },
-        domain: {
-          x: [0, 1],
-          y: [0, 1]
-        },
-        style: 'stamen-terrain',
-        zoom: 5
-      },
-      margin: {
-        r: 0,
-        t: 0,
-        b: 0,
-        l: 0,
-        pad: 0
-      },
-      showlegend: false
-   };
-    //console.log(layout);
-    Plotly.newPlot('stationmap', data, layout);
+    var center = [inputLatitude, inputLongitude];
+    createFeatures(longitudes, latitudes, ids, names, center, inputRadius);
+
   });
 });
+
+function createFeatures(longitudes, latitudes, ids, names, mapCenter, mapRadius) {
+
+  // create the marker layer of stations:
+  var stationMarkers = new L.FeatureGroup();
+
+  //console.log(Math.min(...longitudes), Math.max(...longitudes), Math.min(...latitudes), Math.max(...latitudes));
+  //var southWest = L.LatLng(Math.min(...latitudes), Math.min(...longitudes));
+  //var northEast = L.LatLng(Math.max(...latitudes), Math.max(...longitudes));
+  //var bounds = L.latLngBounds(southWest, northEast);
+  // console.log(bounds);
+
+  for (var i = 0; i < longitudes.length; i++) {
+    // loop through the arrays, create a new stations marker, and add it to the feature group 
+    var stationMarker = L.marker([latitudes[i], longitudes[i]]).bindPopup("<h6>" + ids[i] + "<hr>" + names[i] + "</h6>").addTo(stationMarkers);
+    //stationMarkers.push(
+    //  L.marker([latitudes[i], longitudes[i]]).bindPopup("<h5>" + ids[i] + names[i] + "</h5>")
+    //);
+  }
+
+  if (longitudes.length > 0) {
+    var bounds = stationMarkers.getBounds();
+  } else {
+    var delta = mapRadius / 111; // 111 km  / degree of longitude or latitude
+    var southWest = L.latLng(mapCenter[0] - delta, mapCenter[1] - delta);
+    var northEast = L.latLng(mapCenter[0] + delta, mapCenter[1] + delta);
+    var bounds = L.latLngBounds(southWest, northEast);
+  }
+
+  console.log(bounds);
+
+  // var stationsLayer = L.layerGroup(stationMarkers);
+
+  // Sending our stations layer to the createMap function
+  createMap(stationMarkers, mapCenter, bounds);
+}
+
+function createMap(stationsLayer, mapCenter, bounds) {
+
+  var streetMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+  });
+
+  /*
+  var outdoorsMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: US National Park Service',
+    maxZoom: 8
+  });
+ */
+
+  var satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+    maxZoom: 18
+  });
+
+  var grayscaleMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+    maxZoom: 18
+  });
+
+  // Define a baseMaps object to hold our base layers
+  var baseMaps = {
+    "Satellite": satelliteMap,
+    "Gray Scale": grayscaleMap,
+    "Street": streetMap
+  };
+
+  // Create overlay object to hold our overlay layer
+  var overlayMaps = {
+    'Stations': stationsLayer
+  };
+
+  // Create our map, giving it the grayscale and stations layers to display on load
+  stationsMap = L.map("stationmap", {
+    center: mapCenter,
+    layers: [grayscaleMap, stationsLayer]
+  });
+
+  stationsMap.fitBounds(bounds);
+
+  // Create a layer control
+  // Pass in our baseMaps and overlayMaps
+  // Add the layer control to the map
+  L.control.layers(baseMaps, overlayMaps, {
+    collapsed: false
+  }).addTo(stationsMap);
+}
 
 function transformNumericInputs(userinput) {
   if (!userinput) {
