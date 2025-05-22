@@ -1,5 +1,44 @@
 // Douglas Drake
 
+// Helper functions for form checking:
+function isNumber(value) {
+  return typeof value === 'number' && isFinite(value);
+}
+
+function isValidYear(year) {
+  // check if a number
+  if (!isNumber(year)) {
+    return false;
+  }
+  // check if an integer
+  if (!Number.isInteger(year)) {
+    return false;
+  }
+  // check if valid value - we could up the lower bound
+  if ((year < 1763) || (year > 2019)) {
+    return false;
+  }
+  return true;
+}
+
+function isValidLongitude(longitude) {
+  return (isNumber(longitude) && (longitude >= -180 && longitude <= 180))
+}  
+
+function isValidLatitude(latitude) {
+  if (!isNumber(latitude)) {
+    return false;
+  }
+  return (latitude >= -90 && latitude <= 90)
+}
+
+function isValidRadius(radius) {
+  if (!isNumber(radius)) {
+    return false;
+  }
+  return (radius > 0)
+}
+
 // Select the submit button
 var submit = d3.select("#filter-btn");
 
@@ -10,7 +49,6 @@ var stationsMap = null;
 submit.on("click", function () {
   d3.event.preventDefault();
 
-  // Select the input element and get the raw HTML node
   var weatherElement = d3.select("#weather");
   var firstDateElement = d3.select("#first_date");
   var lastDateElement = d3.select("#last_date");
@@ -27,8 +65,43 @@ submit.on("click", function () {
   var inputLatitude = transformNumericInputs(latitudeElement.property("value"));
   var inputRadius = transformNumericInputs(radiusElement.property("value"));
 
-  let searchUrl = `/find_stations/${inputWeather}+${inputFirstDate}+${inputLastDate}+${inputLongitude}+${inputLatitude}+${inputRadius}`;
+  console.log(inputWeather);
+  console.log(inputFirstDate);
+  console.log(inputLastDate);
+  console.log(inputLongitude);
+  console.log(inputLatitude);
+  console.log(inputRadius);
 
+  // To do - form validation
+  // Currently, we do not perform form validation.  
+  // The queries still return valid (maybe not meaningful) output with bad input
+  if (!isValidYear(inputFirstDate)) {
+    alert("Earliest year should be a whole number between 1763 and 2019.");
+    return false;
+  }
+  if (!isValidYear(inputLastDate)) {
+    alert("Latest year should be a whole number between 1763 and 2019.");
+    return false;
+  }
+  if (inputFirstDate > inputLastDate) {
+    alert("Earliest year should be less than Latest year.");
+    return false;
+  }
+  if (!isValidLongitude(inputLongitude)) {
+    alert("Longitude should be a number between -180 and 180");
+    return false;
+  }
+  if (!isValidLatitude(inputLatitude)) {
+    alert("Latitude should be a number between -90 and 90");
+    return false;
+  }
+  if (!isValidRadius(inputRadius)) {
+    alert("Radius should be a number greater than 0");
+    return false;
+  }
+
+  // Build up the url for the Flask app:
+  let searchUrl = `/find_stations/${inputWeather}+${inputFirstDate}+${inputLastDate}+${inputLongitude}+${inputLatitude}+${inputRadius}`;
   console.log(searchUrl);
 
   if (stationsMap && stationsMap.remove) {
@@ -83,25 +156,35 @@ submit.on("click", function () {
 
 function createFeatures(longitudes, latitudes, ids, names, mapCenter, mapRadius) {
 
+  var markerClusters = L.markerClusterGroup();
+ 
+  for ( var i = 0; i < longitudes.length; ++i ) {
+    var stationUrl = "https://www.ncei.noaa.gov/data/global-historical-climatology-network-daily/access/" + ids[i] + ".csv";
+    var popup = names[i] + '<br/>' + `<a href=${stationUrl}>${ids[i]}</a>`;
+    var m = L.marker( [latitudes[i], longitudes[i]]).bindPopup( popup );
+    markerClusters.addLayer( m );
+  }
+
+  /* The following code creates a layer of markers - not marker clusters
   // create the marker layer of stations:
   var stationMarkers = new L.FeatureGroup();
 
-  //console.log(Math.min(...longitudes), Math.max(...longitudes), Math.min(...latitudes), Math.max(...latitudes));
-  //var southWest = L.LatLng(Math.min(...latitudes), Math.min(...longitudes));
-  //var northEast = L.LatLng(Math.max(...latitudes), Math.max(...longitudes));
-  //var bounds = L.latLngBounds(southWest, northEast);
-  // console.log(bounds);
-
   for (var i = 0; i < longitudes.length; i++) {
     // loop through the arrays, create a new stations marker, and add it to the feature group 
-    var stationMarker = L.marker([latitudes[i], longitudes[i]]).bindPopup("<h6>" + ids[i] + "<hr>" + names[i] + "</h6>").addTo(stationMarkers);
+    var stationUrl = "https://www.ncei.noaa.gov/data/global-historical-climatology-network-daily/access/" + ids[i] + ".csv";
+    var stationMarker = L.marker([latitudes[i], longitudes[i]]).bindPopup(names[i] + '<hr>' + `<a href=${stationUrl}>${ids[i]}</a>`).addTo(stationMarkers);
+    // var stationMarker = L.marker([latitudes[i], longitudes[i]]).bindPopup("<h6>" + ids[i] + "<hr>" + names[i] + "</h6>").addTo(stationMarkers);
     //stationMarkers.push(
     //  L.marker([latitudes[i], longitudes[i]]).bindPopup("<h5>" + ids[i] + names[i] + "</h5>")
     //);
   }
+  */
 
-  if (longitudes.length > 0) {
-    var bounds = stationMarkers.getBounds();
+  if (longitudes.length > 1) {
+    //var bounds = stationMarkers.getBounds();
+    var southWest = L.latLng(Math.min(...latitudes), Math.min(...longitudes));
+    var northEast = L.latLng(Math.max(...latitudes), Math.max(...longitudes));
+    var bounds = L.latLngBounds(southWest, northEast);
   } else {
     var delta = mapRadius / 111; // 111 km  / degree of longitude or latitude
     var southWest = L.latLng(mapCenter[0] - delta, mapCenter[1] - delta);
@@ -112,9 +195,8 @@ function createFeatures(longitudes, latitudes, ids, names, mapCenter, mapRadius)
   console.log(bounds);
 
   // var stationsLayer = L.layerGroup(stationMarkers);
-
   // Sending our stations layer to the createMap function
-  createMap(stationMarkers, mapCenter, bounds);
+  createMap(markerClusters, mapCenter, bounds);
 }
 
 function createMap(stationsLayer, mapCenter, bounds) {
@@ -152,10 +234,10 @@ function createMap(stationsLayer, mapCenter, bounds) {
     'Stations': stationsLayer
   };
 
-  // Create our map, giving it the grayscale and stations layers to display on load
+  // Create our map, giving it the streetmap and stations layers to display on load
   stationsMap = L.map("stationmap", {
     center: mapCenter,
-    layers: [grayscaleMap, stationsLayer]
+    layers: [streetMap, stationsLayer]
   });
 
   stationsMap.fitBounds(bounds);

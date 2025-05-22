@@ -1,154 +1,205 @@
 <!DOCTYPE html>
 
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
-        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>GHCN Weather Stations</title>
-        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-        <!--  Turf -->
-        <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
 
-        <!-- Leaflet JS & CSS -->
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.3/dist/leaflet.css"
-        integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
-        crossorigin=""/>
-        <script src="https://unpkg.com/leaflet@1.3.3/dist/leaflet.js"
-        integrity="sha512-tAGcCfR4Sc5ZP5ZoVz0quoZDYX5aCtEm/eu1KhSLj2c9eFrylXZknQYmxUssFaVJKvvc0dJQixhGjG2yXWiV9Q=="
-        crossorigin=""></script>
+<head>
+  <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>GHCN Weather Stations</title>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+    integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous">
+  </script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+    integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous">
+  </script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+    integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  <!--  Turf -->
+  <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
 
-        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/style.css') }}">
-    </head>
+  <!-- Leaflet JS & CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.3/dist/leaflet.css"
+    integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
+    crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.3.3/dist/leaflet.js"
+    integrity="sha512-tAGcCfR4Sc5ZP5ZoVz0quoZDYX5aCtEm/eu1KhSLj2c9eFrylXZknQYmxUssFaVJKvvc0dJQixhGjG2yXWiV9Q=="
+    crossorigin=""></script>
+  <!-- Marker Cluster JS & CSS -->
+  <script type="text/javascript" src="https://unpkg.com/leaflet.markercluster@1.0.3/dist/leaflet.markercluster.js">
+  </script>
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/leaflet.markercluster@1.0.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" type="text/css"
+    href="https://unpkg.com/leaflet.markercluster@1.0.3/dist/MarkerCluster.Default.css">
 
-  <body>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/style.css') }}">
+</head>
+
+<body>
+  <div class="container">
     <div class="container">
-      <div class="container">
-        <div class="row">
-          <div class="col-md-12">
-              <h1>The Global Historical Climatology Network</h1>
-              <h2>Weather Station Inventory</h2>
-              <hr>
-                <p>
-                  As described by 
-                  <a href="https://www.ncdc.noaa.gov/data-access/land-based-station-data/land-based-datasets/global-historical-climatology-network-ghcn">The Global Historical Climatology Network (GHCN)</a>:
-                  GHCN is an integrated database of climate summaries 
-                  from land surface stations across the 
-                  globe that have been subjected to a common suite of quality assurance reviews. 
-                  The data are obtained from more than 20 sources. Some data are more than 175 years old while 
-                  others are less than an hour old. </p>
-                <p>As of Version: 3.27-upd-2019081018, there are 113,933 stations in the archive.  
-                  We can search for stations by location and for the measurements that
-                  are available.  This search tool currently limits the measurements to the five primary results: Precipitation, Maximum Temperature, 
-                  Minimum Temperature, Snowfall, and Snow Depth.
-                </p>
-                    <p>
-                    <cite>
-                    Menne, M.J., I. Durre, B. Korzeniewski, S. McNeal, K. Thomas, X. Yin, S. Anthony, R. Ray, 
-                    R.S. Vose, B.E.Gleason, and T.G. Houston, 2012: <i>Global Historical Climatology Network - 
-                    Daily (GHCN-Daily), Version 3.27.</i></cite>
-                  </p>
-                  <hr>
+      <div class="row">
+        <div class="col-md-12">
+          <h1>The Global Historical Climatology Network</h1>
+          <h2>Weather Station Inventory</h2>
+          <hr>
+          <p>
+            As described by
+            <a
+              href="https://www.ncdc.noaa.gov/data-access/land-based-station-data/land-based-datasets/global-historical-climatology-network-ghcn">The
+              Global Historical Climatology Network (GHCN)</a>:
+            GHCN is an integrated database of climate summaries
+            from land surface stations across the
+            globe that have been subjected to a common suite of quality assurance reviews.
+            The data are obtained from more than 20 sources. Some data are more than 175 years old while
+            others are less than an hour old. </p>
+          <p>As of Version: 3.27-upd-2019081018, there are 113,933 stations in the archive.
+            We can search for stations by location and for the measurements that
+            are available. This search tool currently limits the measurements to the five primary results:
+            Precipitation, Maximum Temperature,
+            Minimum Temperature, Snowfall, and Snow Depth.
+          </p>
+          <p>
+            <cite>
+              Menne, M.J., I. Durre, B. Korzeniewski, S. McNeal, K. Thomas, X. Yin, S. Anthony, R. Ray,
+              R.S. Vose, B.E.Gleason, and T.G. Houston, 2012: <i>Global Historical Climatology Network -
+                Daily (GHCN-Daily), Version 3.27.</i></cite>
+          </p>
+          <hr>
 
-                  <p> </p>
-                    <h3>Use the menus below to filter on the GHCN stations.</h3>
-                    <p>Results will be displayed in the map and table below.</p>
-          </div> <!-- End col-md-12 -->
-        </div> <!-- End row -->
+          <p> </p>
+          <h3>Use the menus below to filter on the GHCN stations.</h3>
+          <p>Results will be displayed in the map and table below.  The data for each station can be downloaded through 
+            a link in the station's map marker.  The map will be empty if no weather stations satisfy the search parameters.
+          </p>
+        </div> <!-- End col-md-12 -->
+      </div> <!-- End row -->
 
-        <div class="row margin-top-50">
-          <div class="col-md-4">
-                <form>
-                    <div class="form-group">
-                      <ul class="list-group" id="filters">
-                        <li class="filter list-group-item">
-                          <div class="form-group">
-                            <label for="weather">Measurement</label>
-                            <select class="form-control" id="weather">
-                              <option value="PRCP">Precipitation</option>
-                              <option value="TMAX">Daily Maximum Temperature</option>
-                              <option value="TMIN">Daily Minimum Temperature</option>
-                              <option value="SNOW">Snowfall</option>
-                              <option value="SNWD">Snow Depth</option>
-                            </select>
-                          </div>
-                        </li>
-                        <li class="filter list-group-item">
-                          <label for="first_date">Earliest Observations Must Include</label>
-                          <input class="form-control" id="first_date" type="number" min=1900 max=2019 value=1970>
-                        </li>
-                        <li class="filter list-group-item">
-                            <label for="last_date">Latest Year Must Include</label>
-                            <input class="form-control" id="last_date" type="number" min=1900 max = 2019 value=2019>
-                          </li>
-                        <li class="filter list-group-item">
-                            <label for="longitude">Longitude</label>
-                            <input class="form-control" id="longitude" type="number" min=-180 max = 180 value=-93.2650>
-                        </li>
-                        <li class="filter list-group-item">
-                            <label for="latitude">Latitude</label>
-                            <input class="form-control" id="latitude" type="number" min=-90 max=90 value=44.9778>
-                        </li>
-                        <li class="filter list-group-item">
-                          <label for="radius">Search radius (km)</label>
-                          <input class="form-control" id="radius" type="number" min=1 max = 1000 value=50>
-                      </li>
-                      <li class="filter list-group-item">
-                      <input id="filter-btn" class="btn btn-primary btn-lg" type="submit" value="Submit">
-                    </li>
-
-                    </ul>
+      <div class="row margin-top-50">
+        <div class="col-md-4">
+          <form>
+            <div class="form-group">
+              <ul class="list-group" id="filters">
+                <li class="filter list-group-item">
+                  <div class="form-group">
+                    <label for="weather">Measurement</label>
+                    <select class="form-control" id="weather">
+                      <option value="TMAX">Daily Maximum Temperature</option>
+                      <option value="TMIN">Daily Minimum Temperature</option>
+                      <option value="PRCP">Precipitation</option>
+                      <option value="SNOW">Snowfall</option>
+                      <option value="SNWD">Snow Depth</option>
+                    </select>
+                  </div>
+                </li>
+                <li class="filter list-group-item">
+                  <label for="first_date">Earliest Year of Observations</label>
+                  <input class="form-control" id="first_date" type="number" min=1763 max=2019 value=1970 aria-describedby="firstyearHelpBlock" required>
+                  <small id="firstyearHelpBlock" class="form-text text-muted">
+                    Earliest year should be an integer between 1763 and 2019.
+                  </small>
+                  <div class="invalid-feedback">
+                      Please choose a year.
                     </div>
-                  </form>
-          </div> 
+                </li>
+                <li class="filter list-group-item">
+                  <label for="last_date">Latest Year Must Include</label>
+                  <input class="form-control" id="last_date" type="number" min=1763 max=2019 value=2019 aria-describedby="lastyearHelpBlock" required>
+                  <small id="lastyearHelpBlock" class="form-text text-muted">
+                    Latest year should be an integer between 1763 and 2019 and not less than earliest year.
+                  </small>
+                  <div class="invalid-feedback">
+                      Please choose a year.
+                    </div>
+                </li>
+                <li class="filter list-group-item">
+                  <label for="longitude">Center Longitude of Search Area</label>
+                  <input class="form-control" id="longitude" type="number" min=-180 max=180 value=-93 aria-describedby="longitudeHelpBlock" required>
+                  <small id="longitudeHelpBlock" class="form-text text-muted">
+                    Degrees longitude should be between -180 and 180.
+                  </small>
+                  <div class="invalid-feedback">
+                      Please choose a longitude.
+                    </div>
+                </li>
+                <li class="filter list-group-item">
+                  <label for="latitude">Center Latitude of Search Area</label>
+                  <input class="form-control" id="latitude" type="number" min=-90 max=90 value=45 aria-describedby="latitudeHelpBlock" required>
+                  <small id="latitudeHelpBlock" class="form-text text-muted">
+                    Degrees latitude should be between -90 and 90.
+                  </small>
+                  <div class="invalid-feedback">
+                      Please choose a latitude.
+                    </div>
+                </li>
+                <li class="filter list-group-item">
+                  <label for="radius">Search Radius (km)</label>
+                  <input class="form-control" id="radius" type="number" min=1 max=1000 value=50 aria-describedby="radiusHelpBlock" required>
+                  <small id="latitudeHelpBlock" class="form-text text-muted">
+                    Search radius should be number greater than 0.
+                  </small>
+                  <div class="invalid-feedback">
+                      Please choose a radius.
+                    </div>
+                </li>
+                <li class="filter list-group-item">
+                  <input id="filter-btn" class="btn btn-primary btn-lg" type="submit" value="Submit">
+                </li>
 
-          <div class="col-md-8">
-              <div id="stationmap"></div>
+              </ul>
+            </div>
+          </form>
+        </div>
+
+        <div class="col-md-8">
+          <div id="stationmap"></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+
+          <h3>Results</h3>
+          <p>GSN: Global Climate Oberserving System Surface Network;
+            HCN: U.S. Historical Climatology Network; WMO: World Meteorological Organization ID.</p>
+          <p id="filter-state"></p>
+          <div id="table-area" class="">
+            <table id="filter-table-head" class="table table-striped">
+              <thead>
+                <tr>
+                  <th class="table-head">Station</th>
+
+                  <th class="table-head">Latitude</th>
+                  <th class="table-head">Longitude</th>
+                  <th class="table-head">Elevation</th>
+                  <th class="table-head">Country</th>
+                  <th class="table-head">State</th>
+
+                  <th class="table-head">Name</th>
+                  <th class="table-head">GSN</th>
+                  <th class="table-head">HCN</th>
+                  <th class="table-head">WMO</th>
+                  <th class="table-head">Distance</th>
+                </tr>
+              </thead>
+              <tbody id="filter-table"></tbody>
+            </table>
           </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-12">
-
-                <h3>Results</h3>
-                <p>GSN: Global Climate Oberserving System Surface Network, HCN:  U.S. Historical Climatology Network, WMO: World Meteorological Organization</p>
-                <p id="filter-state"></p>
-                <div id="table-area" class="">
-                    <table id="filter-table-head" class="table table-striped">
-                      <thead>
-                        <tr>
-                          <th class="table-head">Station</th>
-                          
-                          <th class="table-head">Latitude</th>
-                          <th class="table-head">Longitude</th>
-                          <th class="table-head">Elevation</th>
-                          <th class="table-head">Country</th>
-                          <th class="table-head">State</th>
-                          
-                          <th class="table-head">Name</th>
-                          <th class="table-head">GSN</th>
-                          <th class="table-head">HCN</th>
-                          <th class="table-head">WMO</th>
-                          <th class="table-head">Distance</th>
-                        </tr>
-                      </thead>
-                      <tbody id="filter-table"></tbody>
-                    </table>
-                  </div>
-          </div>
-
-        </div> <!-- End container -->
+      </div> <!-- End container -->
     </div> <!-- End main container -->
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.5.0/d3.min.js"></script>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
-     
+    <!-- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> -->
+
     <!-- For the apps on our page -->
     <script src="{{ url_for('static', filename='js/config.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-   </body>
+</body>
+
 </html>
