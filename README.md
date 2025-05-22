@@ -28,7 +28,7 @@ used for querying the database.
         This limits the number of stations for which we need to compute the great-circle distance to the target.
 4.  Leaflet is used to plot the coordinates of the returned stations.
 5.  D3 is used to render an HTML table with the station information.
-6.  The App is deployed to Heroku [https://ghcn-leaflet.herokuapp.com/](https://ghcn-leaflet.herokuapp.com/).
+6.  The App is deployed to Heroku [https://ghcn-mapping-stations-39b8729885c5.herokuapp.com/](https://ghcn-mapping-stations-39b8729885c5.herokuapp.com/).
 
 
 # Useful Extension (Further Work)
