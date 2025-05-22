@@ -28,13 +28,21 @@ app = Flask(__name__)
 
 app.url_map.converters['list'] = ListConverter
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///static/data/ghcn.db"
-db = SQLAlchemy(app)
+#app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///static/data/ghcn.db"
+#db = SQLAlchemy(app)
+
+DATABASE = "sqlite:///static/data/ghcn.db"
+
+with app.app_context():
+    engine = create_engine(DATABASE)
+    conn = engine.connect()
+    session = Session(engine)
 
 # reflect an existing database into a new model
 Base = automap_base()
+
 # reflect the tables
-Base.prepare(db.engine, reflect=True)
+Base.prepare(autoload_with=engine, reflect=True)
 
 # Save references to each table
 Inventory = Base.classes.inventory
@@ -198,7 +206,7 @@ def find_stations(search_args):
     latitude = float(search_args[4])
     radius = float(search_args[5])
 
-    df = find_stations_near(db.session, longitude, latitude, radius, element, False, first_year, last_year)
+    df = find_stations_near(session, longitude, latitude, radius, element, False, first_year, last_year)
     #if not df.empty:
     #    df.set_index('station_id', inplace=True)
     
