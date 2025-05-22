@@ -31,14 +31,11 @@ app.url_map.converters['list'] = ListConverter
 #app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///static/data/ghcn.db"
 #db = SQLAlchemy(app)
 
-<<<<<<< HEAD
-=======
 # reflect an existing database into a new model
 #Base = automap_base()
 # reflect the tables
 #Base.prepare(db.engine, reflect=True)
 
->>>>>>> ac872a9cce62c5e0e611e5a901724e881237417d
 DATABASE = "sqlite:///static/data/ghcn.db"
 
 with app.app_context():
